@@ -405,7 +405,19 @@ SVCCTL_UserEvtFlowStatus_t SVCCTL_App_Notification(void *pckt)
         switch (blecore_evt->ecode)
         {
           /* USER CODE BEGIN ecode */
+			case ACI_GAP_PAIRING_COMPLETE_VSEVT_CODE:
+			{
+			  aci_gap_pairing_complete_event_rp0 *pairing_evt = (void*)blecore_evt->data;
+			  APP_DBG_MSG("-- GAP PAIRING COMPLETE, status: 0x%x, reason: 0x%x\n\r",
+				  pairing_evt->Status, pairing_evt->Reason);
+			}
+			break;
 
+			case ACI_GAP_PASS_KEY_REQ_VSEVT_CODE:
+			{
+			  APP_DBG_MSG("-- GAP PASSKEY REQUESTED\n\r");
+			}
+			break;
           /* USER CODE END ecode */
 
           case ACI_GAP_PROC_COMPLETE_VSEVT_CODE:
