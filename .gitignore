@@ -1,0 +1,15 @@
+Debug/
+Release/
+*.o
+*.elf
+*.bin
+*.map
+*.list
+*.su
+
+.metadata/
+
+*.ioc.bak
+
+.DS_Store
+Thumbs.db
