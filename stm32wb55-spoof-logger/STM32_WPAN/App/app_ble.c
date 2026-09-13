@@ -355,7 +355,12 @@ void APP_BLE_Init(void)
   P2PC_APP_Init();
 
   /* USER CODE BEGIN APP_BLE_Init_3 */
-
+  static const uint8_t targetBdAddr[6] = {0x15, 0x4F, 0x1A, 0x84, 0xBE, 0xC4};
+  memcpy(SERVER_REMOTE_BDADDR, targetBdAddr, 6);
+  SERVER_REMOTE_ADDR_TYPE = 0;
+  BleApplicationContext.DeviceServerFound = 0x01;
+  UTIL_SEQ_SetTask(1 << CFG_TASK_CONN_DEV_1_ID, CFG_SCH_PRIO_0);
+  return;
   /* USER CODE END APP_BLE_Init_3 */
 
 #if (OOB_DEMO != 0)
