@@ -542,7 +542,20 @@ SVCCTL_UserEvtFlowStatus_t SVCCTL_App_Notification(void *pckt)
 
           case HCI_LE_CONNECTION_COMPLETE_SUBEVT_CODE:
             /* USER CODE BEGIN EVT_LE_CONN_COMPLETE */
+			  {
+				hci_le_connection_complete_event_rp0 *my_conn_evt =
+					(hci_le_connection_complete_event_rp0 *) meta_evt->data;
 
+				tBleStatus pairResult = aci_gap_send_pairing_req(my_conn_evt->Connection_Handle, 0);
+				if (pairResult == BLE_STATUS_SUCCESS)
+				{
+				  APP_DBG_MSG("  Success: aci_gap_send_pairing_req\n\r");
+				}
+				else
+				{
+				  APP_DBG_MSG("  Fail   : aci_gap_send_pairing_req, result: 0x%x\n\r", pairResult);
+				}
+			  }
             /* USER CODE END EVT_LE_CONN_COMPLETE */
             /**
              * The connection is done,
