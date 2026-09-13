@@ -15,14 +15,20 @@ Stock ST `HCI_LE_ADVERTISING_REPORT_SUBEVT_CODE` parsing only reads report `[0]`
 
 ## Results
 
-**Test 1 — explicit `aci_gap_send_pairing_req` right after connect:**
-fails.
-```
-GAP PAIRING COMPLETE, status: 0x2, reason: 0xc   (Numeric Comparison Failed)
-```
+### HC-10 ↔ HC-10 (native AT interface, both are BT05 clones)
 
-**Test 2 — no explicit pairing call, let GATT's security requirement trigger it naturally:**
-succeeds, real bonding (LTK written to NVM).
+One observed case: peripheral set to `AT+TYPE1` with `AT+PIN123456`, central connecting with a mismatched PIN → `Connected` followed by a self-triggered `Disconnected` a moment later. Connecting with the matching PIN → connection holds. On the surface this looks like a real PIN check + some form of bonding between two same-firmware devices, matching what TI's own CC2541 stack docs describe (bond established once, then reused).
+
+**Not confirmed reproducible.** Repeated attempts at the exact same setup (fresh `AT+DEFAULT` + `AT+RENEW`, `TYPE1` re-applied, matching sequence) failed to reproduce the disconnect — connections held regardless of PIN value tried afterwards. Given this firmware's `AT+TYPE` is independently known to be flaky (doesn't always persist), the single disconnect event might be a real mechanism that only fired under some specific, unclear condition, or might be a firmware glitch. Status: open question, not a confirmed finding.
+
+### STM32WB55 (honest BLE stack) ↔ HC-10
+
+This part **is** solid and reproducible across multiple runs:
+
+- Pairing method is Just Works — confirmed by changing `CFG_FIXED_PIN` (111111 → still succeeds, no difference).
+- No real bonding on the HC-10 side — reconnecting with the exact same (already-bonded) STM32 address triggers a full pairing exchange again (`GAP PAIRING COMPLETE` + NVM write), instead of skipping straight to encryption from a stored LTK.
+- Spoofing STM32's public address to a brand-new, never-seen value still connects and pairs successfully, with any PIN (matching or not) — the module does not gate on identity or on the passkey value.
+
 ```
 GATT: Start Searching Primary Services
 ACI_GATT_PROC_COMPLETE_VSEVT_CODE
@@ -33,6 +39,4 @@ NVM_START_WRITE (22 words)
 NVM_END_WRITE
 ```
 
-**Takeaway:** BT05 does real BLE SM pairing — not a homebrew PIN check like assumed earlier. But *when/who* triggers pairing matters: forcing it early fails, letting the stack request it naturally (via GATT security) succeeds and bonds properly.
-
-**Test 3 — Fixed PIN = 111111:** TBD.
+**Takeaway:** against a real BLE client, this module provides no meaningful pairing security — no MAC-based trust, no PIN enforcement, no working bonding. Whatever the two clones do between themselves over their proprietary AT-level check (see above) doesn't carry over to a standards-compliant BLE central. This is the actual motivation for the AES+DH wrapper project — don't trust the module's own "security" at all, encrypt at the application layer instead.
