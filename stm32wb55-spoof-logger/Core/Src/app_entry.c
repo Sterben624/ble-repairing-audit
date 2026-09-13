@@ -117,7 +117,7 @@ void MX_APPE_Init(void)
   HW_TS_Init(hw_ts_InitMode_Full, &hrtc); /**< Initialize the TimerServer */
 
 /* USER CODE BEGIN APPE_Init_1 */
-
+  APPD_Init();
 /* USER CODE END APPE_Init_1 */
   appe_Tl_Init();	/* Initialize all transport layers */
 
